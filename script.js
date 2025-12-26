@@ -70,13 +70,21 @@ document.querySelectorAll('[data-aos]').forEach(element => {
 });
 
 // ===== Add Parallax Effect to Hero Section =====
+let ticking = false;
+
 window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-    
-    if (hero && scrolled < window.innerHeight) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-        hero.style.opacity = 1 - (scrolled / window.innerHeight);
+    if (!ticking) {
+        window.requestAnimationFrame(() => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero');
+            
+            if (hero && scrolled < window.innerHeight) {
+                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+                hero.style.opacity = 1 - (scrolled / window.innerHeight);
+            }
+            ticking = false;
+        });
+        ticking = true;
     }
 });
 
@@ -88,7 +96,7 @@ serviceCards.forEach(card => {
     });
     
     card.addEventListener('mouseleave', function() {
-        if (this.classList.contains('featured')) {
+        if (this.classList.contains('featured') && window.innerWidth > 768) {
             this.style.transform = 'scale(1.05)';
         } else {
             this.style.transform = 'translateY(0) scale(1)';
@@ -177,12 +185,28 @@ problemCards.forEach((card, index) => {
 const floatingCard = document.querySelector('.floating-card');
 if (floatingCard) {
     let angle = 0;
-    setInterval(() => {
+    let animationId;
+    
+    function animate() {
         angle += 0.5;
         const x = Math.sin(angle * Math.PI / 180) * 10;
         const y = Math.cos(angle * Math.PI / 180) * 10;
         floatingCard.style.transform = `translate(${x}px, ${y}px)`;
-    }, 50);
+        animationId = requestAnimationFrame(animate);
+    }
+    
+    // Start animation only if element is visible
+    const floatingObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animate();
+            } else if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        });
+    });
+    
+    floatingObserver.observe(floatingCard);
 }
 
 // ===== Console Welcome Message =====
